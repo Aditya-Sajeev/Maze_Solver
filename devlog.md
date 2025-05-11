@@ -6,3 +6,7 @@ To solve this Prolog maze project, I'll develop a predicate find_exit/2 that nav
 5/10/2025 11:46 PM
 
 Solution Psuedocode
+
+5/11/2025 2:12 PM
+
+Solution fixes

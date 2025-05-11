@@ -1,55 +1,52 @@
-% Main predicate
+% Project 2: Maze Solver
+% Predicate find_exit/2 that finds a path from start 's' to exit 'e' in a maze
+
+% Main predicate: find a path from start to exit
 find_exit(Maze, Actions) :-
-    % Step 1: Validate the maze has exactly one start position
+    % Validate the maze has exactly one start position
     validate_maze(Maze),
     
-    % Step 2: Find the start position coordinates
+    % Find the start position coordinates
     find_start(Maze, StartRow, StartCol),
     
-    % Step 3: Find a path from start to exit
-    % Initialize visited list with start position
+    % Solve the maze using depth-first search
+    % Initialize empty visited list and action accumulator
     solve(Maze, StartRow, StartCol, [(StartRow, StartCol)], [], ReversedActions),
     
-    % Step 4: Reverse the action list for correct order
+    % Reverse the accumulated actions to get correct order
     reverse(ReversedActions, Actions).
 
-% Validate maze has exactly one start position
+% Validate that maze has exactly one start position
 validate_maze(Maze) :-
-    count_start_positions(Maze, 1).
-
-% Count start positions in maze
-count_start_positions(Maze, Count) :-
     flatten(Maze, FlatMaze),
-    count_occurrences(FlatMaze, s, Count).
+    include(=(s), FlatMaze, StartCells),
+    length(StartCells, 1).
 
 % Find the start position coordinates
 find_start(Maze, Row, Col) :-
     nth0(Row, Maze, MazeRow),
     nth0(Col, MazeRow, s).
 
-% Core recursive path-finding algorithm
-solve(Maze, Row, Col, Visited, AccActions, Actions) :-
-    % Check if current position is an exit
-    is_exit(Maze, Row, Col)
-    -> Actions = AccActions  % Success - return accumulated actions
-    ;  % Not at exit yet, try a move
-       try_move(Maze, Row, Col, Visited, AccActions, Actions).
+% Core pathfinding algorithm
+% Base case: current position is an exit, return accumulated actions
+solve(Maze, Row, Col, _, AccActions, AccActions) :-
+    is_exit(Maze, Row, Col).
 
-% Try each possible move direction
-try_move(Maze, Row, Col, Visited, AccActions, Actions) :-
-    % Choose a move (left, right, up, or down)
+% Recursive case: try to move in some direction
+solve(Maze, Row, Col, Visited, AccActions, Actions) :-
+    % Try one of the four possible moves
     member(Move, [left, right, up, down]),
     
     % Calculate new position after move
     apply_move(Move, Row, Col, NewRow, NewCol),
     
-    % Check if new position is valid
+    % Check if the move is valid (within bounds and not a wall)
     valid_move(Maze, NewRow, NewCol),
     
-    % Check if new position hasn't been visited
+    % Check that we havent visited this position before
     \+ member((NewRow, NewCol), Visited),
     
-    % Recursively continue from new position
+    % Continue search from new position
     solve(Maze, NewRow, NewCol, [(NewRow, NewCol)|Visited], [Move|AccActions], Actions).
 
 % Apply a move to current coordinates
