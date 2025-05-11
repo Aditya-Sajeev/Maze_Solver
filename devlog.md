@@ -5,8 +5,14 @@ To solve this Prolog maze project, I'll develop a predicate find_exit/2 that nav
 
 5/10/2025 11:46 PM
 
-Solution Psuedocode
+Solution Psuedocode (Depth-first search that builds a path from start to exit while avoiding walls and previously visited places using backtracking)
+
 
 5/11/2025 2:12 PM
 
-Solution fixes
+Solution implementation (Validates the maze has exactly one start position + Finds a path from start to any exit + Fails appropriately for invalid mazes or moves + Works with both bound and unbound second parameters)
+
+
+5/11/2025 5:25
+
+Efficiency upgrades (better path representation and move ordering + addition of cuts and once/1 + replaced   \+ member/2 with \+ memberchk/2)
