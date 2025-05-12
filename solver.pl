@@ -12,65 +12,50 @@ find_exit(Maze, Actions) :-
     % Solve the maze using depth-first search with efficient visited tracking
     solve(Maze, StartRow, StartCol, Actions).
 
-% Validate that maze has exactly one start position - using once for efficiency
+% Validate that maze has exactly one start position
 validate_maze(Maze) :-
     flatten(Maze, FlatMaze),
-    once((
-        include(=(s), FlatMaze, StartCells),
-        length(StartCells, 1)
-    )).
+    include(=(s), FlatMaze, StartCells),
+    length(StartCells, 1).
 
-% Find the start position coordinates - using once for efficiency
+% Find the start position coordinates
 find_start(Maze, Row, Col) :-
-    once((
-        nth0(Row, Maze, MazeRow),
-        nth0(Col, MazeRow, s)
-    )).
+    nth0(Row, Maze, MazeRow),
+    nth0(Col, MazeRow, s).
 
 % Core pathfinding algorithm with more efficient implementation
 solve(Maze, StartRow, StartCol, Actions) :-
-    % Use a difference list for more efficient action accumulation
-    solve_path(Maze, [(StartRow, StartCol)], [(StartRow, StartCol)], Actions-[]).
+    % Initialize visited positions with starting position
+    solve_path(Maze, StartRow, StartCol, [(StartRow, StartCol)], [], RevActions),
+    % Reverse to get actions in correct order
+    reverse(RevActions, Actions).
 
-% Helper predicate to handle the search with difference lists for better performance
-solve_path(Maze, [(Row, Col)|_], Visited, Actions-[]) :-
-    % Check if current position is an exit
-    is_exit(Maze, Row, Col),
-    % Extract the action list from accumulated path
-    extract_actions(Visited, Actions).
+% Base case: current position is an exit
+solve_path(Maze, Row, Col, _, AccActions, AccActions) :-
+    is_exit(Maze, Row, Col).
 
-solve_path(Maze, [(Row, Col)|Path], Visited, Actions) :-
-    % Try each move direction in a specific order (optimized for common maze patterns)
-    % Choose the moves in a different order (right, down, left, up) for potentially better performance in many mazes
-    move_direction(Direction, Row, Col, NewRow, NewCol),
+% Recursive case: try each possible move
+solve_path(Maze, Row, Col, Visited, AccActions, FinalActions) :-
+    % Try moves in an order that may be more efficient for typical mazes
+    member(Move, [right, down, left, up]),
+    
+    % Calculate new position after move
+    apply_move(Move, Row, Col, NewRow, NewCol),
     
     % Check if the move is valid and not previously visited
     valid_move(Maze, NewRow, NewCol),
     \+ memberchk((NewRow, NewCol), Visited),
     
     % Continue search from new position
-    solve_path(Maze, [(NewRow, NewCol), (Row, Col)|Path], [(NewRow, NewCol)|Visited], Actions).
+    solve_path(Maze, NewRow, NewCol, [(NewRow, NewCol)|Visited], [Move|AccActions], FinalActions).
 
-% Ordered move directions for potentially better performance in common maze patterns
-move_direction(right, Row, Col, Row, NewCol) :- NewCol is Col + 1.
-move_direction(down, Row, Col, NewRow, Col) :- NewRow is Row + 1.
-move_direction(left, Row, Col, Row, NewCol) :- NewCol is Col - 1.
-move_direction(up, Row, Col, NewRow, Col) :- NewRow is Row - 1.
+% Apply a move to current coordinates
+apply_move(right, Row, Col, Row, NewCol) :- NewCol is Col + 1.
+apply_move(left, Row, Col, Row, NewCol) :- NewCol is Col - 1.
+apply_move(down, Row, Col, NewRow, Col) :- NewRow is Row + 1.
+apply_move(up, Row, Col, NewRow, Col) :- NewRow is Row - 1.
 
-% Extract actions from a path of coordinates
-extract_actions([(R2, C2), (R1, C1)|Path], [Action|Actions]-Tail) :-
-    % Determine the action taken to move from (R1,C1) to (R2,C2)
-    determine_action(R1, C1, R2, C2, Action),
-    extract_actions([(R1, C1)|Path], Actions-Tail).
-extract_actions([_], T-T).
-
-% Determine which action was taken between two positions
-determine_action(R, C1, R, C2, right) :- C2 is C1 + 1.
-determine_action(R, C1, R, C2, left) :- C2 is C1 - 1.
-determine_action(R1, C, R2, C, down) :- R2 is R1 + 1.
-determine_action(R1, C, R2, C, up) :- R2 is R1 - 1.
-
-% Check if position is valid (within bounds and not a wall) - with cut for efficiency
+% Check if position is valid (within bounds and not a wall)
 valid_move(Maze, Row, Col) :-
     Row >= 0,
     Col >= 0,
@@ -80,11 +65,9 @@ valid_move(Maze, Row, Col) :-
     length(MazeRow, Cols),
     Col < Cols,
     nth0(Col, MazeRow, Cell),
-    Cell \= w,
-    !.
+    Cell \= w.
 
-% Check if position is an exit - with cut for efficiency
+% Check if position is an exit
 is_exit(Maze, Row, Col) :-
     nth0(Row, Maze, MazeRow),
-    nth0(Col, MazeRow, e),
-    !.
+    nth0(Col, MazeRow, e).

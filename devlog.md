@@ -13,6 +13,11 @@ Solution Psuedocode (Depth-first search that builds a path from start to exit wh
 Solution implementation (Validates the maze has exactly one start position + Finds a path from start to any exit + Fails appropriately for invalid mazes or moves + Works with both bound and unbound second parameters)
 
 
-5/11/2025 5:25
+5/11/2025 5:25 PM
 
-Efficiency upgrades (better path representation and move ordering + addition of cuts and once/1 + replaced   \+ member/2 with \+ memberchk/2)
+Efficiency upgrades (Better path representation and move ordering + Addition of cuts and once/1 + Replaced   \+ member/2 with \+ memberchk/2)
+
+
+5/11/2025 10:47 PM
+
+Fixed errors from efficiency upgrades (Fixed singleton variable warning + Removed difference lists + Reverted to accumulating actions and reversing at the end)
